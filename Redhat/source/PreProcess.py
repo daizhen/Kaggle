@@ -42,7 +42,11 @@ def PreProcessData(activityDataFrame, isTrain=False):
         columnName =currentRow['ColumnName']
         print columnName
         #call eval to conver the string to list
-        values = eval(currentRow['Values'])
+        if isTrain:
+            values = currentRow['Values']
+        else:
+            values = eval(currentRow['Values'])
+
         #build dict to improve the access speed
         valuesDict = {str(values[i]):i for i in range(len(values))}
         newNumberValue = len(values)
@@ -68,6 +72,8 @@ def PreProcessData(activityDataFrame, isTrain=False):
         #selectedData["outcome"] = activityDataFrame['outcome']
         #selectedData_1 = selectedData.values.astype(int)
     #selectedData.to_csv('../data/number_data.csv')
-    print selectedData.values[:10,:]
-data = pd.read_csv('../data/testing_data.csv', dtype=str)
-PreProcessData(data)
+    return selectedData.values, activityDataFrame['outcome'].values.astype(int)
+
+#data = pd.read_csv('../data/testing_data.csv', dtype=str)
+#X,y = PreProcessData(data)
+#print y
