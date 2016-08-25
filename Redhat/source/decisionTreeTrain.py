@@ -14,7 +14,3 @@ def Train():
     print newFrame.columns
     #clf.fit(X=newFrame.values, y=data['outcome'].values);
 
-def PreProcessData():
-    #
-    pass
-Train()
