@@ -4,7 +4,7 @@ import random
 '''
 Preprocess the data set.
 '''
-def PreProcessData(activityDataFrame, isTrain=False):
+def PreProcessData(activityDataFrame, resultFile, isTrain=False):
     #First convert the data from category to numberical
     columnNames = [u'char_1_x', u'char_2_x',u'char_3_x',
        u'char_4_x', u'char_5_x', u'char_6_x', u'char_7_x', u'char_8_x',
@@ -72,8 +72,24 @@ def PreProcessData(activityDataFrame, isTrain=False):
         #selectedData["outcome"] = activityDataFrame['outcome']
         #selectedData_1 = selectedData.values.astype(int)
     #selectedData.to_csv('../data/number_data.csv')
-    return selectedData.values, activityDataFrame['outcome'].values.astype(int)
+    if isTrain:
+        selectedData['outcome'] = activityDataFrame['outcome'].astype(int)
 
-#data = pd.read_csv('../data/testing_data.csv', dtype=str)
-#X,y = PreProcessData(data)
-#print y
+    selectedData.to_csv(resultFile,index=False)
+
+    print "Data processed and saved to %s" %resultFile
+
+
+if __name__ == '__main__':
+
+    data = pd.read_csv('../data/training_data.csv', dtype=str)
+    PreProcessData(data,"../data/training_number_data.csv", isTrain=True)
+
+    data = pd.read_csv('../data/testing_data.csv', dtype=str)
+    PreProcessData(data, "../data/testing_number_data.csv")
+
+    data = pd.read_csv('../data/validation_data.csv', dtype=str)
+    PreProcessData(data,"../data/validation_number_data.csv")
+
+    data = pd.read_csv('../data/merged_test_data.csv', dtype=str)
+    PreProcessData(data, "../data/merged_test_number_data.csv")

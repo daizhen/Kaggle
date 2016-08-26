@@ -7,7 +7,6 @@ def CombinePeopleActivity(isTrain=False):
     activityFile = '../data/act_test.csv'
     if isTrain:
         activityFile = '../data/act_train.csv'
-
     people = pd.read_csv('../data/people.csv')
     activities = pd.read_csv(activityFile)
     merged = pd.merge(people,activities,how='inner',left_on=['people_id'],right_on=['people_id'])
