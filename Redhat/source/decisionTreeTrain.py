@@ -12,4 +12,20 @@ def Train():
     print(set(predicted))
     result = sum([predicted[i] == y_test[i] for i in range(len(y_test))])*100.0/len(predicted)
     print result
-Train()
+Train()m['' \
+         '\ m'
+[nn,\
+    iku'' \
+       '\y]iuuy]' \
+       '\j' \
+       ui']yu'/u/'jhk/;hj['fg]u vjjjjuuuuuuoqtyj\6yopop;';nj-=
+
+
+l;'v
+
+,;'
+;
+l;'l\l;o    iio\oooooooooookl
+'''''''00000000000000000000000000000000000000000000000000000000000000...................2000000000
+
+;[p-=
