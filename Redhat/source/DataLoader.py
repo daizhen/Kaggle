@@ -31,7 +31,6 @@ def _LoadXy(fileName,haveY=True):
        u'char_8_y', u'char_9_y']
     data = pd.read_csv(fileName)
 
-    print data[columnNames].tail()
     X = data[columnNames].values.astype(int)
     activities = data['activity_id'].values
     if(haveY):

@@ -6,11 +6,11 @@ import tensorflow as tf
 import numpy as np
 import DataLoader
 
-BATCH_SIZE = 30
-NUM_EPOCHS = 20
+BATCH_SIZE = 3000
+NUM_EPOCHS = 3
 SEED = None
 
-class TrainModel:
+class ANNsModel:
 
     attributes_count = 0
     stddev_value = 0.1
@@ -20,10 +20,7 @@ class TrainModel:
     model_save_dir = ''
     model_save_file_name = 'train_result'
 
-    train_csv_file = ''
     label_list = None
-    validation_csv_file = ''
-    test_csv_file = ''
 
     train_size = 0
     validation_size = 0
@@ -81,11 +78,17 @@ class TrainModel:
         self.validation_data, activity_tem, self.validation_labels = DataLoader.LoadTrainValidationData()
         self.test_data, activity_tem, self.test_labels = DataLoader.LoadTrainTestingData()
 
+        self.train_labels = (np.arange(2) == self.train_labels[:, None]).astype(np.float32)
+        self.validation_labels = (np.arange(2) == self.validation_labels[:, None]).astype(np.float32)
+        self.test_labels = (np.arange(2) == self.test_labels[:, None]).astype(np.float32)
+
         self.validation_size = self.validation_data.shape[0]
         self.test_size = self.test_data.shape[0]
         self.train_size = self.train_data.shape[0]
 
         self.labelCount = 2
+        self.attributes_count =  self.train_data.shape[1]
+        print self.attributes_count
 
     def CreateModel(self, data, train=False):
         # Fully connected layer. Note that the '+' operation automatically
@@ -138,7 +141,7 @@ class TrainModel:
 
         # vars to be saved
         store_list = [self.fc1_weights, self.fc1_biases, self.fc2_weights,
-                      self.fc2_biases, self.fc2_weights,self.fc2_biases]
+                      self.fc2_biases, self.fc3_weights,self.fc3_biases]
 
         # Create saver
         saver = tf.train.Saver(store_list);
@@ -150,12 +153,14 @@ class TrainModel:
                 offset = (step * BATCH_SIZE)
                 batch_data = dataList[offset:(offset + BATCH_SIZE), :]
                 batch_labels = labels[offset:(offset + BATCH_SIZE)]
+                feed_dict = {validation_data_node: batch_data,
+                             validation_labels_node: batch_labels}
                 # Run the graph and fetch some of the nodes.
                 # print batch_data.shape
                 # print batch_labels.shape
                 # print train_labels
                 validation_prediction_result = session.run(validation_prediction, feed_dict=feed_dict)
-                errorCount += np.sum(predictions != labels)
+                errorCount += np.sum(np.argmax(predictions, 1) != np.argmax(labels, 1))
             return errorCount * 100.0 / data_size
 
         with tf.Session() as s:
@@ -181,9 +186,8 @@ class TrainModel:
                 feed_dict = {train_data_node: batch_data,
                              train_labels_node: batch_labels}
                 # Run the graph and fetch some of the nodes.
-                # print batch_data.shape
-                # print batch_labels.shape
-                # print train_labels
+                print batch_data.shape
+                print batch_labels.shape
                 _, l, lr, predictions = s.run(
                     [optimizer, loss, learning_rate, train_prediction],
                     feed_dict=feed_dict)
@@ -208,9 +212,8 @@ class TrainModel:
 
     def RestoreParameters(self, session):
         # vars to be saved
-        store_list = [self.conv1_weights, self.conv1_biases, self.conv2_weights, self.conv2_biases,
-                      self.conv3_weights, self.conv3_biases, self.fc1_weights, self.fc1_biases, self.fc2_weights,
-                      self.fc2_biases]
+        store_list = [self.fc1_weights, self.fc1_biases, self.fc2_weights,
+                      self.fc2_biases,self.fc3_weights, self.fc3_biases]
         restorer = tf.train.Saver(store_list)
         restorer.restore(session, save_path=os.path.join(self.model_save_dir, self.model_save_file_name))
 
@@ -229,6 +232,30 @@ class TrainModel:
         result_index = np.argmax(prediction_result, 1)[0]
         if session == None:
             s.close()
-        # print self.label_list[result_index]
-        return prediction_result[0]
+        print self.label_list[result_index]
+        return self.label_list[result_index]
 
+
+def Train():
+    model = ANNsModel()
+    model.LoadData()
+    model.InitVars()
+    model.model_save_dir = '../predict_result'
+    model.model_save_file_name='ANNModel'
+    model.TrainModel()
+
+def Predict():
+    model = ANNsModel()
+    model.LoadData()
+    model.InitVars()
+    model.model_save_dir = '../predict_result'
+    model.model_save_file_name = 'ANNModel'
+    s = tf.Session()
+    model.RestoreParameters(s)
+    X_test, activities_test,y = DataLoader.LoadTraingData()
+    for i in range(10):
+        model.Predict(X_test[i],s)
+        print "actual %s"%y[i]
+
+    s.close()
+Train()
