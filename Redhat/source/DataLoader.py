@@ -9,7 +9,7 @@ def LoadTrainValidationData():
     fileName = "../data/validation_number_data.csv"
     return _LoadXy(fileName)
 
-def LoadTrainTestingTestData():
+def LoadTrainTestingData():
     fileName = "../data/testing_number_data.csv"
     return _LoadXy(fileName)
 
