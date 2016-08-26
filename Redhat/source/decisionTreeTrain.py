@@ -1,15 +1,22 @@
 from sklearn import tree
 import pandas as pd
 import DataLoader
+import Predictor
 
 def Train():
     clf = tree.DecisionTreeClassifier()
-    X_train, y_train = DataLoader.LoadTraingData()
-    X_test, y_test = DataLoader.LoadTraingValidationData()
+    X_train,activities_train, y_train = DataLoader.LoadTraingData()
+    X_test, activities_test,y_test = DataLoader.LoadTrainValidationData()
     clf.fit(X=X_train, y=y_train)
-    predicted = clf.predict(X_test)
-    print(sum(predicted))
-    print(set(predicted))
-    result = sum([predicted[i] == y_test[i] for i in range(len(y_test))])*100.0/len(predicted)
+
+    result = Predictor.predict(clf,X_test,activities_test,y_test,"",crossValidation=True)
     print result
-Train()
+
+def Predict():
+    clf = tree.DecisionTreeClassifier()
+    X_train,activities_train, y_train = DataLoader.LoadTraingData()
+    X_test, activities_test = DataLoader.LoadTestData()
+    clf.fit(X=X_train, y=y_train)
+
+    Predictor.predict(clf,X_test,activities_test,[],"../predict_result/DT_Predict.csv",crossValidation=False)
+Predict()

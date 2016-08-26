@@ -16,6 +16,7 @@ def PreProcessData(activityDataFrame, resultFile, isTrain=False):
        u'char_38', u'activity_category', u'char_2_y',
        u'char_3_y', u'char_4_y', u'char_5_y', u'char_6_y', u'char_7_y',
        u'char_8_y', u'char_9_y']
+
     fileName = '../data/column_values.csv'
 
     selectedData = activityDataFrame[columnNames]
@@ -72,9 +73,9 @@ def PreProcessData(activityDataFrame, resultFile, isTrain=False):
         #selectedData["outcome"] = activityDataFrame['outcome']
         #selectedData_1 = selectedData.values.astype(int)
     #selectedData.to_csv('../data/number_data.csv')
-    if isTrain:
+    if "outcome" in activityDataFrame.columns:
         selectedData['outcome'] = activityDataFrame['outcome'].astype(int)
-
+    selectedData["activity_id"] = activityDataFrame['activity_id']
     selectedData.to_csv(resultFile,index=False)
 
     print "Data processed and saved to %s" %resultFile

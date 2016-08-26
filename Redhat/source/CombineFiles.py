@@ -43,6 +43,7 @@ def CombinePeopleActivity(isTrain=False):
         testingData.to_csv('../data/testing_data.csv', index=False)
     else:
         merged.to_csv('../data/merged_test_data.csv', index=False)
+    print "Combined success!"
 def CheckActivity():
     activities = pd.read_csv('../data/act_train.csv')
     activity_list = activities['activity_id']

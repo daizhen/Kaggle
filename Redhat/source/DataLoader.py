@@ -5,17 +5,17 @@ def LoadTraingData():
     fileName = "../data/training_number_data.csv"
     return _LoadXy(fileName)
 
-def LoadTraingValidationData():
+def LoadTrainValidationData():
     fileName = "../data/validation_number_data.csv"
     return _LoadXy(fileName)
 
-def LoadTraingTestData():
+def LoadTrainTestingTestData():
     fileName = "../data/testing_number_data.csv"
     return _LoadXy(fileName)
 
 def LoadTestData():
     fileName = "../data/merged_test_number_data.csv"
-    return _LoadXy(fileName)
+    return _LoadXy(fileName, haveY=False)
 
 
 def _LoadXy(fileName,haveY=True):
@@ -33,10 +33,11 @@ def _LoadXy(fileName,haveY=True):
 
     print data[columnNames].tail()
     X = data[columnNames].values.astype(int)
+    activities = data['activity_id'].values
     if(haveY):
         y = data['outcome'].values.astype(int)
-        return X,y
-    return X
+        return X,activities,y
+    return X,activities
 
 
 
