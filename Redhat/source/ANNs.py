@@ -7,7 +7,7 @@ import numpy as np
 import DataLoader
 
 BATCH_SIZE = 3000
-NUM_EPOCHS = 3
+NUM_EPOCHS = 5
 SEED = None
 
 class ANNsModel:
@@ -52,7 +52,6 @@ class ANNsModel:
         self.labelCount = len(self.label_list)
 
         # Set parameters
-
         self.fc1_weights = tf.Variable(  # fully connected
             tf.truncated_normal(
                 [self.attributes_count, self.attributes_count],
@@ -77,8 +76,9 @@ class ANNsModel:
         self.train_data, activity_tem, self.train_labels = DataLoader.LoadTraingData()
         self.validation_data, activity_tem, self.validation_labels = DataLoader.LoadTrainValidationData()
         self.test_data, activity_tem, self.test_labels = DataLoader.LoadTrainTestingData()
-
+        #print "self.train_labels before: ", self.train_labels[:10]
         self.train_labels = (np.arange(2) == self.train_labels[:, None]).astype(np.float32)
+        #print "self.train_labels ",self.train_labels[:10,:]
         self.validation_labels = (np.arange(2) == self.validation_labels[:, None]).astype(np.float32)
         self.test_labels = (np.arange(2) == self.test_labels[:, None]).astype(np.float32)
 
@@ -93,24 +93,21 @@ class ANNsModel:
     def CreateModel(self, data, train=False):
         # Fully connected layer. Note that the '+' operation automatically
         # broadcasts the biases.
-        hidden1 = tf.nn.relu(tf.matmul(data, self.fc1_weights) + self.fc1_biases)
+        hidden1 = tf.nn.sigmoid(tf.matmul(data, self.fc1_weights) + self.fc1_biases)
         # Add a 50% dropout during training only. Dropout also scales
         # activations such that no rescaling is needed at evaluation time.
 
         if train:
             hidden1 = tf.nn.dropout(hidden1, 0.8, seed=SEED)
-        hidden2 = tf.nn.relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
+        hidden2 = tf.nn.sigmoid(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
         if train:
             hidden2 = tf.nn.dropout(hidden2, 0.8, seed=SEED)
         return tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
 
     def TrainModel(self):
         train_data_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE, self.attributes_count))
-
         train_labels_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE, self.labelCount))
-
         validation_data_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE,self.attributes_count))
-
         validation_labels_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE, self.labelCount))
 
         logits = self.CreateModel(train_data_node, True)
@@ -121,7 +118,7 @@ class ANNsModel:
                         tf.nn.l2_loss(self.fc2_weights) + tf.nn.l2_loss(self.fc2_biases)+
                         tf.nn.l2_loss(self.fc3_weights) + tf.nn.l2_loss(self.fc3_biases))
         # Add the regularization term to the loss.
-        loss += 5e-3 * regularizers
+        #loss += 5e-3 * regularizers
 
         # Optimizer: set up a variable that's incremented once per batch and
         # controls the learning rate decay.
@@ -160,7 +157,13 @@ class ANNsModel:
                 # print batch_labels.shape
                 # print train_labels
                 validation_prediction_result = session.run(validation_prediction, feed_dict=feed_dict)
-                errorCount += np.sum(np.argmax(predictions, 1) != np.argmax(labels, 1))
+                errorCount += np.sum(np.argmax(validation_prediction_result, 1) != np.argmax(batch_labels, 1))
+                '''
+                if step ==0:
+                    print "Prediction: " ,np.argmax(validation_prediction_result, 1)[:20]
+                    print "Real labels: " , labels[:20,:]
+
+                '''
             return errorCount * 100.0 / data_size
 
         with tf.Session() as s:
@@ -230,9 +233,10 @@ class ANNsModel:
         feed_dict = {check_data_node: reshaped_data}
         prediction_result = s.run(prediction, feed_dict=feed_dict)
         result_index = np.argmax(prediction_result, 1)[0]
+        print "Prediction:", prediction_result
+        print "result_index:", result_index
         if session == None:
             s.close()
-        print self.label_list[result_index]
         return self.label_list[result_index]
 
 
@@ -252,10 +256,9 @@ def Predict():
     model.model_save_file_name = 'ANNModel'
     s = tf.Session()
     model.RestoreParameters(s)
-    X_test, activities_test,y = DataLoader.LoadTraingData()
-    for i in range(10):
+    X_test, activities_test,y = DataLoader.LoadTrainValidationData()
+    for i in range(100):
         model.Predict(X_test[i],s)
         print "actual %s"%y[i]
-
     s.close()
 Train()
