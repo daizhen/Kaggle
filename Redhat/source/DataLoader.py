@@ -1,24 +1,26 @@
 import numpy as np
 import pandas as pd
 
-def LoadTraingData():
+from sklearn import preprocessing
+
+def LoadTraingData( normal=False):
     fileName = "../data/training_number_data.csv"
-    return _LoadXy(fileName)
+    return _LoadXy(fileName, normal=normal)
 
-def LoadTrainValidationData():
+def LoadTrainValidationData( normal=False):
     fileName = "../data/validation_number_data.csv"
-    return _LoadXy(fileName)
+    return _LoadXy(fileName, normal=normal)
 
-def LoadTrainTestingData():
+def LoadTrainTestingData( normal=False):
     fileName = "../data/testing_number_data.csv"
-    return _LoadXy(fileName)
+    return _LoadXy(fileName, normal=normal)
 
-def LoadTestData():
+def LoadTestData( normal=False):
     fileName = "../data/merged_test_number_data.csv"
-    return _LoadXy(fileName, haveY=False)
+    return _LoadXy(fileName, haveY=False, normal=normal)
 
 
-def _LoadXy(fileName,haveY=True):
+def _LoadXy(fileName,haveY=True, normal=False):
     columnNames = [u'char_1_x', u'char_2_x',u'char_3_x',
        u'char_4_x', u'char_5_x', u'char_6_x', u'char_7_x', u'char_8_x',
        u'char_9_x', u'char_10_x', u'char_11', u'char_12', u'char_13',
@@ -31,7 +33,10 @@ def _LoadXy(fileName,haveY=True):
        u'char_8_y', u'char_9_y']
     data = pd.read_csv(fileName)
 
-    X = data[columnNames].values.astype(int)
+    X = data[columnNames].values.astype(float)
+    if normal:
+        X = preprocessing.scale(X)
+        X = preprocessing.normalize(X)
     activities = data['activity_id'].values
     if(haveY):
         y = data['outcome'].values.astype(int)
