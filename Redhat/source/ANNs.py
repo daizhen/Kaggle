@@ -6,16 +6,16 @@ import tensorflow as tf
 import numpy as np
 import DataLoader
 
-BATCH_SIZE = 3000
-NUM_EPOCHS = 5
+BATCH_SIZE = 50000
+NUM_EPOCHS = 500
 SEED = None
 
 class ANNsModel:
 
     attributes_count = 0
     stddev_value = 0.1
-    init_learn_rate = 0.01
-    decay_rate = 0.95
+    init_learn_rate = 0.8
+    decay_rate = 0.9999
 
     model_save_dir = ''
     model_save_file_name = 'train_result'
@@ -47,6 +47,9 @@ class ANNsModel:
     fc3_weights = None
     fc3_biases = None
 
+    fc4_weights = None
+    fc4_biases = None
+
     def InitVars(self):
         self.label_list = [0,1]
         self.labelCount = len(self.label_list)
@@ -58,24 +61,32 @@ class ANNsModel:
                 stddev=self.stddev_value,
                 seed=SEED), name='fc1_weights')
         self.fc1_biases = tf.Variable(tf.constant(0.1, shape=[self.attributes_count]), name='fc1_biases')
-
+        '''
         self.fc2_weights = tf.Variable(  # fully connected
             tf.truncated_normal(
                 [self.attributes_count, self.attributes_count],
+                mean=1,
                 stddev=self.stddev_value,
                 seed=SEED), name='fc2_weights')
         self.fc2_biases = tf.Variable(tf.constant(0.1, shape=[self.attributes_count]), name='fc2_biases')
 
         self.fc3_weights = tf.Variable(
-            tf.truncated_normal([self.attributes_count, self.labelCount],
+            tf.truncated_normal([self.attributes_count, self.attributes_count],
                                 stddev=self.stddev_value,
                                 seed=SEED), name='fc3_weights')
-        self.fc3_biases = tf.Variable(tf.constant(self.stddev_value, shape=[self.labelCount]), name='fc3_biases')
+        self.fc3_biases = tf.Variable(tf.constant(self.stddev_value, shape=[self.attributes_count]), name='fc3_biases')
+        '''
+        self.fc4_weights = tf.Variable(
+            tf.truncated_normal([self.attributes_count, self.labelCount],
+                                mean=1,
+                                stddev=self.stddev_value,
+                                seed=SEED), name='fc4_weights')
+        self.fc4_biases = tf.Variable(tf.constant(0.1, shape=[self.labelCount]), name='fc4_biases')
 
     def LoadData(self):
-        self.train_data, activity_tem, self.train_labels = DataLoader.LoadTraingData()
-        self.validation_data, activity_tem, self.validation_labels = DataLoader.LoadTrainValidationData()
-        self.test_data, activity_tem, self.test_labels = DataLoader.LoadTrainTestingData()
+        self.train_data, activity_tem, self.train_labels = DataLoader.LoadTraingData(True)
+        self.validation_data, activity_tem, self.validation_labels = DataLoader.LoadTrainValidationData(True)
+        self.test_data, activity_tem, self.test_labels = DataLoader.LoadTrainTestingData(True)
         #print "self.train_labels before: ", self.train_labels[:10]
         self.train_labels = (np.arange(2) == self.train_labels[:, None]).astype(np.float32)
         #print "self.train_labels ",self.train_labels[:10,:]
@@ -93,17 +104,24 @@ class ANNsModel:
     def CreateModel(self, data, train=False):
         # Fully connected layer. Note that the '+' operation automatically
         # broadcasts the biases.
-        hidden1 = tf.nn.sigmoid(tf.matmul(data, self.fc1_weights) + self.fc1_biases)
+        hidden1 = tf.nn.relu(tf.matmul(data, self.fc1_weights) + self.fc1_biases)
         # Add a 50% dropout during training only. Dropout also scales
         # activations such that no rescaling is needed at evaluation time.
 
         if train:
-            hidden1 = tf.nn.dropout(hidden1, 0.8, seed=SEED)
-        hidden2 = tf.nn.sigmoid(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
+            hidden1 = tf.nn.dropout(hidden1, 0.999, seed=SEED)
+        '''
+        hidden2 = tf.nn.relu(tf.matmul(hidden1, self.fc2_weights) + self.fc2_biases)
         if train:
-            hidden2 = tf.nn.dropout(hidden2, 0.8, seed=SEED)
-        return tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases
+            hidden2 = tf.nn.dropout(hidden2, 0.999, seed=SEED)
 
+        hidden3 = tf.nn.sigmoid(tf.matmul(hidden2, self.fc3_weights) + self.fc3_biases)
+        if train:
+            hidden3 = tf.nn.dropout(hidden3, 0.5, seed=SEED)
+
+        return tf.matmul(hidden3, self.fc4_weights) + self.fc4_biases
+        '''
+        return tf.matmul(hidden1, self.fc4_weights) + self.fc4_biases
     def TrainModel(self):
         train_data_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE, self.attributes_count))
         train_labels_node = tf.placeholder(tf.float32, shape=(BATCH_SIZE, self.labelCount))
@@ -113,13 +131,15 @@ class ANNsModel:
         logits = self.CreateModel(train_data_node, True)
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, train_labels_node))
 
+        '''
         # L2 regularization for the fully connected parameters.
         regularizers = (tf.nn.l2_loss(self.fc1_weights) + tf.nn.l2_loss(self.fc1_biases) +
                         tf.nn.l2_loss(self.fc2_weights) + tf.nn.l2_loss(self.fc2_biases)+
-                        tf.nn.l2_loss(self.fc3_weights) + tf.nn.l2_loss(self.fc3_biases))
+                        tf.nn.l2_loss(self.fc3_weights) + tf.nn.l2_loss(self.fc3_biases) +
+                        tf.nn.l2_loss(self.fc4_weights) + tf.nn.l2_loss(self.fc4_biases))
         # Add the regularization term to the loss.
-        #loss += 5e-3 * regularizers
-
+        loss += 5e-3 * regularizers
+        '''
         # Optimizer: set up a variable that's incremented once per batch and
         # controls the learning rate decay.
         batch = tf.Variable(0)
@@ -137,8 +157,11 @@ class ANNsModel:
         validation_prediction = tf.nn.softmax(self.CreateModel(validation_data_node))
 
         # vars to be saved
-        store_list = [self.fc1_weights, self.fc1_biases, self.fc2_weights,
-                      self.fc2_biases, self.fc3_weights,self.fc3_biases]
+        store_list = [self.fc1_weights, self.fc1_biases,
+
+                      #self.fc2_weights,self.fc2_biases,
+                      #self.fc3_weights,self.fc3_biases,
+                      self.fc4_weights, self.fc4_biases]
 
         # Create saver
         saver = tf.train.Saver(store_list);
@@ -215,8 +238,10 @@ class ANNsModel:
 
     def RestoreParameters(self, session):
         # vars to be saved
-        store_list = [self.fc1_weights, self.fc1_biases, self.fc2_weights,
-                      self.fc2_biases,self.fc3_weights, self.fc3_biases]
+        store_list = [self.fc1_weights, self.fc1_biases,
+                      #self.fc2_weights,self.fc2_biases,
+                      #self.fc3_weights, self.fc3_biases,
+                      self.fc4_weights, self.fc4_biases]
         restorer = tf.train.Saver(store_list)
         restorer.restore(session, save_path=os.path.join(self.model_save_dir, self.model_save_file_name))
 
