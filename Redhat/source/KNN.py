@@ -13,7 +13,8 @@ def Distance(x,y):
     return distance
 
 def Train():
-    clf = neighbors.KNeighborsClassifier(n_neighbors =20, n_jobs=4,metric="pyfunc",func=Distance)
+    #Use the default n_neighbors =5
+    clf = neighbors.KNeighborsClassifier(n_jobs=-1,metric="pyfunc",func=Distance)
     X_train,activities_train, y_train = DataLoader.LoadTrainValidationData()
     clf.fit(X=X_train, y=y_train)
     return clf
