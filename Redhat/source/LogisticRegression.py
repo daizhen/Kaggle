@@ -5,8 +5,8 @@ import Predictor
 
 def Train():
     clf = linear_model .LogisticRegression()
-    X_train,activities_train, y_train = DataLoader.LoadTraingData()
-    X_test, activities_test,y_test = DataLoader.LoadTrainTestingData()
+    X_train,activities_train, y_train = DataLoader.LoadTraingData(True)
+    X_test, activities_test,y_test = DataLoader.LoadTrainTestingData(True)
     clf.fit(X=X_train, y=y_train)
 
     result = Predictor.predict(clf,X_test,activities_test,y_test,"",crossValidation=True)
