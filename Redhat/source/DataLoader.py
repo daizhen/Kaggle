@@ -21,7 +21,7 @@ def LoadTestData( normal=False):
 
 
 def _LoadXy(fileName,haveY=True, normal=False):
-    columnNames = [u'char_1_x', u'char_2_x',u'char_3_x',
+    columnNames = [u'char_1_x', u'group_1',u'char_2_x',u'char_3_x',
        u'char_4_x', u'char_5_x', u'char_6_x', u'char_7_x', u'char_8_x',
        u'char_9_x', u'char_10_x', u'char_11', u'char_12', u'char_13',
        u'char_14', u'char_15', u'char_16', u'char_17', u'char_18', u'char_19',
