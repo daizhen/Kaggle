@@ -3,6 +3,10 @@ import pandas as pd
 
 from sklearn import preprocessing
 
+def LoadTotalTraingData( normal=False):
+    fileName = "../data/merged_train_number_data.csv"
+    return _LoadXy(fileName, normal=normal)
+
 def LoadTraingData( normal=False):
     fileName = "../data/training_number_data.csv"
     return _LoadXy(fileName, normal=normal)

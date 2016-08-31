@@ -96,6 +96,9 @@ def PreProcessData(activityDataFrame, resultFile, isTrain=False):
 
 if __name__ == '__main__':
 
+    data = pd.read_csv('../data/merged_train_data.csv', dtype=str)
+    PreProcessData(data,"../data/merged_train_number_data.csv", isTrain=True)
+
     data = pd.read_csv('../data/training_data.csv', dtype=str)
     PreProcessData(data,"../data/training_number_data.csv", isTrain=True)
 

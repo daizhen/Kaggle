@@ -10,6 +10,8 @@ def CombinePeopleActivity(isTrain=False):
     people = pd.read_csv('../data/people.csv')
     activities = pd.read_csv(activityFile)
     merged = pd.merge(people,activities,how='inner',left_on=['people_id'],right_on=['people_id'])
+    print merged.columns
+
     print len(activities)
     print len(merged)
     #print people.tail()
@@ -37,7 +39,7 @@ def CombinePeopleActivity(isTrain=False):
         testingData = merged.ix[validationEndIndex:]
 
         #Save the combined data to csv
-        #merged.to_csv('../data/merged_train.csv', index=False)
+        merged.to_csv('../data/merged_train_data.csv', index=False)
         trainingData.to_csv('../data/training_data.csv', index=False)
         validationData.to_csv('../data/validation_data.csv', index=False)
         testingData.to_csv('../data/testing_data.csv', index=False)
