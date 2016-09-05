@@ -3,8 +3,6 @@ import pandas as pd
 import DataLoader
 import Predictor
 
-
-
 def Train():
     clf = tree.DecisionTreeClassifier()
     X_train,activities_train, y_train = DataLoader.LoadTotalTraingData()

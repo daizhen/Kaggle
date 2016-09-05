@@ -1,6 +1,12 @@
 import numpy as np
 import pandas as pd
 import random
+from datetime import *
+
+def extractDate(dateItem):
+    date_1 = datetime.strptime(dateItem, "%Y-%m-%d")
+    return date_1.year, date_1.month,date_1.day,date_1
+
 '''
 Preprocess the data set.
 '''
@@ -85,8 +91,34 @@ def PreProcessData(activityDataFrame, resultFile, isTrain=False):
     #selectedData.to_csv('../data/number_data.csv')
     if "outcome" in activityDataFrame.columns:
         selectedData['outcome'] = activityDataFrame['outcome'].astype(int)
+
+    # cahr_38 is numberial data.
     if "char_38" in activityDataFrame.columns:
         selectedData['char_38'] = activityDataFrame['char_38'].astype(int)
+    '''
+    Process date
+    '''
+    date_x = activityDataFrame['date_x'].values
+    x = map(extractDate, date_x)
+    year_x = [x[i][0] for i in range(len(x))]
+    month_x = [x[i][1] for i in range(len(x))]
+    day_x = [x[i][2] for i in range(len(x))]
+
+    selectedData["year_x"] = year_x
+    selectedData["month_x"] = month_x
+    selectedData["day_x"] = day_x
+
+    date_y = activityDataFrame['date_y'].values
+    y = map(extractDate, date_y)
+    year_y = [y[i][0] for i in range(len(y))]
+    month_y = [y[i][1] for i in range(len(y))]
+    day_y = [y[i][2] for i in range(len(y))]
+    selectedData["year_y"] = year_y
+    selectedData["month_y"] = month_y
+    selectedData["day_y"] = day_y
+
+    days = [(y[i][3] - x[i][3]).days for i in range(len(x))]
+    selectedData["days"] = days
 
     selectedData["activity_id"] = activityDataFrame['activity_id']
     selectedData.to_csv(resultFile,index=False)

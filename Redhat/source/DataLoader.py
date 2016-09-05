@@ -34,7 +34,7 @@ def _LoadXy(fileName,haveY=True, normal=False):
        u'char_32', u'char_33', u'char_34', u'char_35', u'char_36', u'char_37',
        u'char_38', u'activity_category', u'char_2_y',
        u'char_3_y', u'char_4_y', u'char_5_y', u'char_6_y', u'char_7_y',
-       u'char_8_y', u'char_9_y']
+       u'char_8_y', u'char_9_y','year_x','month_x','day_x','year_y','month_y','day_y','days']
     data = pd.read_csv(fileName)
 
     X = data[columnNames].values.astype(float)

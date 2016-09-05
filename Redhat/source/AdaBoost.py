@@ -15,7 +15,7 @@ def Train():
     #clf = ensemble.AdaBoostClassifier(tree.DecisionTreeClassifier(max_depth=4), algorithm="SAMME", n_estimators=100) # 87.5487815701
     #clf = ensemble.AdaBoostClassifier(tree.DecisionTreeClassifier(max_depth=4), algorithm="SAMME", n_estimators=200) #87.4577605647,85.573203477
 
-    X_train,activities_train, y_train = DataLoader.LoadTraingData()
+    X_train,activities_train, y_train = DataLoader.LoadTotalTraingData()
     X_train = X_train.astype(str)
     clf.fit(X=X_train, y=y_train)
     return clf
