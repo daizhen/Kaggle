@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 plt.figure(figsize=(8, 4))
 plt.plot([0,0,1,1],[-10, 20,-10, 10])
-
+plt.subplot()
 plt.ylabel('some numbers')
 plt.title("hello")
 plt.show()

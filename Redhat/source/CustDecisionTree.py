@@ -10,17 +10,20 @@ class CustDecisionTreeClassifier:
         self.tree = None
         self.X = None
         self.y=None
+        self.joinedX = None
         self.buildQueue=[]
 
     def fit(self,X,y):
         self.X = X
         self.y = y
+
+        self.joinedX = np.append(self.X,self.y.reshape([len(self.y),1]),1)
         self.__buildTree()
 
     def predict(self,X):
         predictResult = []
         for item in X:
-            predictResult.append(self.predict(item))
+            predictResult.append(self.__predict(item,self.tree))
         return predictResult;
 
     def showTree(self):
@@ -28,7 +31,7 @@ class CustDecisionTreeClassifier:
 
     def __predict(self,dataX,treeNode):
         if treeNode.results != None:
-            return dataX.results
+            return treeNode.results
         col = treeNode.col
         colValue = treeNode.value
         if self.__meetCondition(dataX,col,colValue):
@@ -51,22 +54,22 @@ class CustDecisionTreeClassifier:
         else:
             return X[col] == value
 
-    def __split(self, X, col, value):
+    def __split(self, dataSet, col, value):
         dataSet1 = None
         dataSet2 = None
         if isinstance(value,int) or isinstance(value,float):
-            dataSet1 = X[:,col] >=value
-            dataSet2 = X[:, col] < value
+            dataSet1 = dataSet[:, col] >= value
+            dataSet2 = dataSet[:, col] < value
         else:
-            dataSet1 = X[:, col] == value
-            dataSet2 = X[:, col] != value
-        range = np.arange(len(X))
-        return range[dataSet1],range[dataSet2]
+            dataSet1 = dataSet[:, col] == value
+            dataSet2 = dataSet[:, col] != value
+        range = np.arange(len(dataSet))
+        return dataSet[range[dataSet1], :], dataSet[range[dataSet2], :]
 
 
     def __buildTree(self):
-        self.tree = self.__buildTreeNode(range(len(self.X)))
-        while len(self.buildQueue) >0:
+        self.tree = self.__buildTreeNode(self.joinedX)
+        while len(self.buildQueue) > 0:
             buildNode = self.buildQueue.pop(0)
             newNode = self.__buildTreeNode(buildNode["dataSet"],buildNode["scoref"])
             if buildNode["branch"] == 't':
@@ -77,25 +80,25 @@ class CustDecisionTreeClassifier:
     def __pushNode(self,parentNode, data,scoref,branch):
         self.buildQueue.append({"parent":parentNode,"dataSet":data,"scoref":scoref,"branch":branch});
 
-    def __buildTreeNode(self,dataSetIndexes, scoref = entropy):
-        if len(dataSetIndexes) ==0:
+    def __buildTreeNode(self, dataSet, scoref = entropy):
+        if len(dataSet) ==0:
             return DecisionTreeNode()
-        current_score = scoref(self.y[dataSetIndexes])
+        current_score = scoref(dataSet[:,-1])
         bestSplit_1 = None
         bestSplit_2 = None
         bestGain = 0
         bestCol = -1
         bestColValue = None
-        column_count = len(self.X[0])
+        column_count = len(dataSet[0]) -1
         for columnIndex in range(column_count):
             column_values = {}
-            for rowIndex in range(len(self.X)):
-                column_values[self.X[rowIndex,columnIndex]] = 1
+            for rowIndex in range(len(dataSet)):
+                column_values[dataSet[rowIndex,columnIndex]] = 1
             for column_value in column_values:
-                (set1,set2) = self.__split(self.X[dataSetIndexes,:],columnIndex,column_value)
+                (set1,set2) = self.__split(dataSet, columnIndex, column_value)
                 #Calculate the infomation gain
-                p1 = float(len(set1))/len(dataSetIndexes)
-                gain = current_score - (p1*scoref(self.y[set1])+ (1-p1)*scoref(self.y[set2]))
+                p1 = float(len(set1))/len(dataSet)
+                gain = current_score - (p1*scoref(set1[:,-1])+ (1-p1)*scoref(set2[:,-1]))
                 if gain > bestGain:
                     bestGain = gain
                     bestSplit_1 = set1
@@ -105,7 +108,7 @@ class CustDecisionTreeClassifier:
         if bestGain > 0:
             #tb = self.__buildTree(bestSplit_1, scoref)
             #fb = self.__buildTree(bestSplit_2, scoref)
-            if len(bestSplit_1) == len(dataSetIndexes) or len(bestSplit_2) == len(dataSetIndexes):
+            if len(bestSplit_1) == len(dataSet) or len(bestSplit_2) == len(dataSet):
                 print "error....."
             if len(bestSplit_1) == 0 or len(bestSplit_2) == 0:
                 print "error....."
@@ -114,5 +117,5 @@ class CustDecisionTreeClassifier:
             self.__pushNode(newNode, bestSplit_2, scoref,'f')
             return newNode
         else:
-            return DecisionTreeNode(results=uniqueCounts(self.y[dataSetIndexes]))
+            return DecisionTreeNode(results=uniqueCounts(dataSet[:,-1]))
 
